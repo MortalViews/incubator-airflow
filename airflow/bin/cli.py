@@ -1084,7 +1084,7 @@ def flower(args):
 def kerberos(args):  # noqa
     print(settings.HEADER)
     import airflow.security.kerberos
-
+    
     if args.daemon:
         pid, stdout, stderr, log_file = setup_locations("kerberos", args.pid, args.stdout, args.stderr, args.log_file)
         stdout = open(stdout, 'w+')
@@ -1097,12 +1097,16 @@ def kerberos(args):  # noqa
         )
 
         with ctx:
-            airflow.security.kerberos.run()
+            airflow.security.kerberos.run(principal=args.principal,
+                                          keytab=args.keytab,
+                                          ccache=args.ccache)
 
         stdout.close()
         stderr.close()
     else:
-        airflow.security.kerberos.run()
+        airflow.security.kerberos.run(principal=args.principal,
+                                      keytab=args.keytab,
+                                      ccache=args.ccache)
 
 
 Arg = namedtuple(
@@ -1269,6 +1273,9 @@ class CLIFactory(object):
         'keytab': Arg(
             ("-kt", "--keytab"), "keytab",
             nargs='?', default=conf.get('kerberos', 'keytab')),
+        'ccache': Arg(
+            ("-cc", "--ccache"), "kerberos credential cache",
+            nargs='?', default=conf.get('kerberos', 'ccache')),
         # run
         # TODO(aoen): "force" is a poor choice of name here since it implies it overrides
         # all dependencies (not just past success), e.g. the ignore_depends_on_past
@@ -1506,7 +1513,7 @@ class CLIFactory(object):
         }, {
             'func': kerberos,
             'help': "Start a kerberos ticket renewer",
-            'args': ('principal', 'keytab', 'pid',
+            'args': ('principal', 'keytab', 'ccache','pid',
                      'daemon', 'stdout', 'stderr', 'log_file'),
         }, {
             'func': render,

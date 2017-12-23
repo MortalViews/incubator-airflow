@@ -36,4 +36,7 @@ class KerberosTest(unittest.TestCase):
         """
         We expect no result, but a successful run. No more TypeError
         """
-        self.assertIsNone(renew_from_kt())
+        kconf = configuration.getsection("kerberos")
+        self.assertIsNone(renew_from_kt(principal=kconf.get("principal"),
+                                        keytab=kconf.get("keytab"),
+                                        ccache=kconf.get("ccache")))
